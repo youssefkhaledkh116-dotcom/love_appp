@@ -23,7 +23,6 @@ class LoveApp extends StatelessWidget {
   }
 }
 
-// خلفية متحركة مدمجة بكلمات "شهد" وقلوب متطايرة
 class MovingBackground extends StatefulWidget {
   final Widget child;
   const MovingBackground({super.key, required this.child});
@@ -375,25 +374,24 @@ class _QuestionPageState extends State<QuestionPage>
                       const Text(
                         'والجيزاوي كمان بيحبك جداً 💍✨',
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.redAccent,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 25),
-                      // أنيميشن مستوى الحب (Love Meter)
+                      const SizedBox(height: 20),
                       Column(
                         children: [
                           const Text(
                             'مستوى الحب: 100% (ما شاء الله لا ينتهي) 🚀💖',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: Colors.pink,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           AnimatedBuilder(
                             animation: _loveMeterAnimation,
                             builder: (context, child) {
@@ -401,7 +399,7 @@ class _QuestionPageState extends State<QuestionPage>
                                 borderRadius: BorderRadius.circular(10),
                                 child: LinearProgressIndicator(
                                   value: _loveMeterAnimation.value,
-                                  minHeight: 14,
+                                  minHeight: 12,
                                   backgroundColor: Colors.pink[100],
                                   valueColor:
                                       const AlwaysStoppedAnimation<Color>(
@@ -413,9 +411,545 @@ class _QuestionPageState extends State<QuestionPage>
                           ),
                         ],
                       ),
+                      const SizedBox(height: 25),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HeartCatchGamePage(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'ادخلي العبي اللعبة الأولى 🎮❤️',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
                     ],
                   ],
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HeartCatchGamePage extends StatefulWidget {
+  const HeartCatchGamePage({super.key});
+
+  @override
+  State<HeartCatchGamePage> createState() => _HeartCatchGameState();
+}
+
+class _HeartCatchGameState extends State<HeartCatchGamePage>
+    with TickerProviderStateMixin {
+  int score = 0;
+  bool hasWon = false;
+  final Random _random = Random();
+
+  double heartX = 150;
+  double heartY = 0;
+  double basketX = 130;
+
+  late AnimationController _gameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _gameController =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 15),
+          )
+          ..addListener(_updateGame)
+          ..repeat();
+  }
+
+  void _updateGame() {
+    if (hasWon) return;
+    setState(() {
+      heartY += 5.0;
+      if (heartY > 360) {
+        if ((heartX - basketX).abs() < 60) {
+          score += 1;
+          _resetHeart();
+          if (score >= 10) {
+            hasWon = true;
+            _gameController.stop();
+          }
+        } else if (heartY > 410) {
+          _resetHeart();
+        }
+      }
+    });
+  }
+
+  void _resetHeart() {
+    heartY = 0;
+    heartX = _random.nextDouble() * 260;
+  }
+
+  @override
+  void dispose() {
+    _gameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MovingBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.pink,
+          title: const Text(
+            'المرحلة 1: قلوب الجيزاوي 🎮❤️',
+            style: TextStyle(color: Colors.white),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 550),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              color: Colors.white.withValues(alpha: 0.95),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: !hasWon
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'القلوب المجمعة: $score / 10 💖',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          Expanded(
+                            child: GestureDetector(
+                              onPanUpdate: (details) {
+                                setState(() {
+                                  basketX += details.delta.dx;
+                                  basketX = basketX.clamp(0.0, 260.0);
+                                });
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.pink[50],
+                                  borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: Colors.pink.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Positioned(
+                                      left: heartX,
+                                      top: heartY,
+                                      child: const Text(
+                                        '❤️',
+                                        style: TextStyle(fontSize: 28),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 15,
+                                      left: basketX,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.pink,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          '🧺 الجيزاوي',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          const Text(
+                            'اجمعي 10 قلوب عشان تفتحي المرحلة التانية! ✨',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.star, size: 80, color: Colors.amber),
+                          const SizedBox(height: 15),
+                          const Text(
+                            'أعظم إنجاز يا أجمل شهد! 🎉',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.pinkAccent,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 15),
+                          const Text(
+                            'اجتزتِ المرحلة الأولى بنجاح وكسبتِ قلوب قلبي كلهم!\nيلا بينا على المرحلة التانية: سواقة العربية وتفادي الحواجز! 🚗💨',
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.5,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 25),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pink,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CarDrivingGamePage(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'ابدأ المرحلة التانية 🚗✨',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CarDrivingGamePage extends StatefulWidget {
+  const CarDrivingGamePage({super.key});
+
+  @override
+  State<CarDrivingGamePage> createState() => _CarDrivingGamePageState();
+}
+
+class _CarDrivingGamePageState extends State<CarDrivingGamePage>
+    with TickerProviderStateMixin {
+  int passedBarriers = 0;
+  bool isGameOver = false;
+  bool hasWonGame2 = false;
+
+  double carX = 130;
+  double barrierX = 130;
+  double barrierY = 0;
+
+  final Random _random = Random();
+  late AnimationController _carController;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetBarrier();
+    _carController =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 15),
+          )
+          ..addListener(_updateDrivingGame)
+          ..repeat();
+  }
+
+  void _updateDrivingGame() {
+    if (isGameOver || hasWonGame2) return;
+    setState(() {
+      barrierY += 4.5;
+
+      if (barrierY > 350 && barrierY < 420) {
+        if ((carX - barrierX).abs() < 45) {
+          isGameOver = true;
+        }
+      }
+
+      if (barrierY > 450) {
+        passedBarriers += 1;
+        _resetBarrier();
+
+        if (passedBarriers >= 15) {
+          hasWonGame2 = true;
+          _carController.stop();
+        }
+      }
+    });
+  }
+
+  void _resetBarrier() {
+    barrierY = 0;
+    List<double> lanes = [40.0, 130.0, 220.0];
+    barrierX = lanes[_random.nextInt(lanes.length)];
+  }
+
+  void _restartGame() {
+    setState(() {
+      passedBarriers = 0;
+      isGameOver = false;
+      hasWonGame2 = false;
+      _resetBarrier();
+      _carController.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _carController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildGameContent() {
+    if (hasWonGame2) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.favorite, size: 90, color: Colors.pink),
+          const SizedBox(height: 15),
+          const Text(
+            'مبروك الفوز الأسطوري يا أجمل شهد! 🏆❤️',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.pinkAccent,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 15),
+          const Text(
+            'أثبتِ إنك شاطرة في كل حاجة، حتى سواقة العربية وتفادي الصعاب!\nالجيزاوي بيحبك بجنون وعايزك تفضلي منورة حياته دايماً ومبتسمة يا أجمل حاجة في عمري 💍✨',
+            style: TextStyle(fontSize: 15, height: 1.5, color: Colors.black87),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 25),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pink,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'العودة للبداية 💖',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ],
+      );
+    } else if (isGameOver) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.car_crash, size: 80, color: Colors.red),
+          const SizedBox(height: 15),
+          const Text(
+            'ياااه خبطتِ في الحاجز! 😅',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.redAccent,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 15),
+          const Text(
+            'معليش يا ست البنات، السواقة عاوزة تركيز شوية.. جربي تاني وهتعديها بسهولة! 💪❤️',
+            style: TextStyle(fontSize: 15, color: Colors.black87),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 25),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pink,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: _restartGame,
+            child: const Text(
+              'إعادة المحاولة 🔄',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'الحواجز المجتازة: $passedBarriers / 15 🚧',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.pinkAccent,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                setState(() {
+                  carX += details.delta.dx;
+                  carX = carX.clamp(20.0, 260.0);
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[850],
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.pink.withValues(alpha: 0.5),
+                    width: 3,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Center(child: Container(width: 4, color: Colors.white24)),
+                    Positioned(
+                      left: barrierX,
+                      top: barrierY,
+                      child: Container(
+                        width: 70,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          '🚧 خطر',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 25,
+                      left: carX,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.pinkAccent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.pink, blurRadius: 8),
+                          ],
+                        ),
+                        child: const Text(
+                          '🚗 شهد',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'حركي العربية يمين ويسار لتفادي الحواجز الحمراء! 🛣️',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MovingBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.pink,
+          title: const Text(
+            'المرحلة 2: سواقة العربية وتفادي الحواجز 🚗✨',
+            style: TextStyle(color: Colors.white),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 580),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              color: Colors.white.withValues(alpha: 0.95),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: _buildGameContent(),
               ),
             ),
           ),
