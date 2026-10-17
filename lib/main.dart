@@ -1,121 +1,323 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const LoveApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LoveApp extends StatelessWidget {
+  const LoveApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'For You',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.pink,
+        scaffoldBackgroundColor: const Color(0xFFFFF0F3),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const LoginPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+// خلفية متحركة وواضحة مليانة بكلمة "شهد"
+class MovingBackground extends StatefulWidget {
+  final Widget child;
+  const MovingBackground({super.key, required this.child});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MovingBackground> createState() => _MovingBackgroundState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MovingBackgroundState extends State<MovingBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12), // سرعة الحركة الهادية
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      backgroundColor: const Color(0xFFFFF0F3),
+      body: Stack(
+        children: [
+          // طبقة الكلمات المتحركة في الخلفية
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Positioned.fill(
+                child: CustomPaint(
+                  painter: MovingTextPainter(animationValue: _controller.value),
+                ),
+              );
+            },
+          ),
+          // محتوى التطبيق الأساسي فوق الخلفية
+          widget.child,
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    );
+  }
+}
+
+// رسام الكلمات المتحركة بوضوح أكتر
+class MovingTextPainter extends CustomPainter {
+  final double animationValue;
+  MovingTextPainter({required this.animationValue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final textPainter = TextPainter(textDirection: TextDirection.rtl);
+
+    // عدد أكبر من الكلمات عشان تملى الشاشة وتكون ظاهرة حلو
+    for (int i = 0; i < 35; i++) {
+      double x = (i * 95.0) % (size.width + 50);
+      // حساب حركة الـ Y عشان تطلع وتنزل باستمرار
+      double y =
+          ((i * 70.0) + (animationValue * size.height)) % (size.height + 60) -
+          30;
+
+      textPainter.text = TextSpan(
+        text: 'شهد ',
+        style: TextStyle(
+          fontSize: 20 + (i % 4) * 5.0, // أحجام متنوعة وشكلها لطيف
+          color: Colors.pink.withValues(
+            alpha: 0.18,
+          ), // وضحناها شوية (زودنا الشفافية لـ 0.18 عشان تكون واضحة ومش مزعجة)
+          fontWeight: FontWeight.bold,
+        ),
+      );
+
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(x, y));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant MovingTextPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue;
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _nameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  final String correctName = "شهد احمد علي";
+  final String correctPassword = "14231"; // الباسورد هنا
+
+  void _login() {
+    if (_nameController.text.trim() == correctName.trim() &&
+        _passwordController.text.trim() == correctPassword.trim()) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const QuestionPage()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('الاسم أو الباسورد مش مظبوط يا غالي، جربي تاني!'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MovingBackground(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.favorite, size: 80, color: Colors.pink),
+                const SizedBox(height: 20),
+                const Text(
+                  'مرحباً بكِ',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pinkAccent,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'اكتبي اسمك الثلاثي',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.95),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'كلمة المرور',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.95),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _login,
+                  child: const Text('دخول', style: TextStyle(fontSize: 18)),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class QuestionPage extends StatefulWidget {
+  const QuestionPage({super.key});
+
+  @override
+  State<QuestionPage> createState() => _QuestionPageState();
+}
+
+class _QuestionPageState extends State<QuestionPage> {
+  bool answeredYes = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MovingBackground(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (!answeredYes) ...[
+                  const Icon(
+                    Icons.favorite_border,
+                    size: 80,
+                    color: Colors.pink,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'هل تحبين الجيزاوي؟',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            answeredYes = true;
+                          });
+                        },
+                        child: const Text(
+                          'نعم',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'مفيش الاختيار ده أصلاً! جربي تدوسي نعم ❤️',
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('لا', style: TextStyle(fontSize: 20)),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  const Icon(Icons.favorite, size: 100, color: Colors.pink),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'والجيزاوي بيحبك جداً وعايزك تكوني دايما بخير ❤️',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pinkAccent,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
